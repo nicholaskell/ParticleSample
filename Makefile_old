@@ -1,0 +1,47 @@
+CC = g++
+CFLAGS = -g -Wall -I/home/robd/libs/include/
+PROG = cube
+
+SRC_DIR=src/
+CPP_SOURCES:=$(shell find $(SRC_DIR) -type f -name '*.cpp')
+
+SRCS = $(CPP_SOURCES)
+#src/*.cpp src/bt/input/*.cpp src/bt/states/*.cpp src/bt/utils/*.cpp
+
+#LIBS = -L/home/robd/libs/lib -lglut -lGLU -lSDL2
+LIBS = -L./ -lopenal -lserial
+OPENGL_FLAGS:=-lglut -lGLU -lGLEW 
+OSX_OPEN_GL_LIBRARIES = -framework Glut -framework OpenGL 
+#-lSDL2
+
+all:start $(PROG)
+
+$(PROG):	$(SRCS)
+	$(CC) $(CFLAGS) -o $(PROG) $(SRCS) $(OSX_OPEN_GL_LIBRARIES) $(LIBS)
+
+clean:
+	rm -f $(PROG)
+
+start: checkos
+ifndef TERM
+	@echo "Setting TERM environment variable."
+	$(eval export TERM=xterm)
+endif
+	@if clear; \
+	then echo ""; \
+	else echo "";\
+	fi
+	@echo '';echo '';echo '';
+	@echo 'Start.'; 
+
+.PHONY: 	clean done start nick v_colonFile checkosx scrub game camera update version
+
+checkos:
+	@echo "Checking OS"
+ifeq ($(UNAME),Darwin)
+	@echo "Compiling on OS X"
+	$(eval export OPENGL_FLAGS= -framework Carbon -framework OpenGL -framework GLUT)
+#	$(eval export SDL_CONFIG_DIR = /usr/local/bin/)
+#	$(eval export LINKER_EXTRAS+= $(SRC_DIR)/SDLMain.m `$(SDL_CONFIG_COMMAND) --libs`)
+#	$(eval export COMPILER_EXTRAS+= -j8)
+endif
