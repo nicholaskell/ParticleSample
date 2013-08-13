@@ -1,5 +1,8 @@
 #include "particles.h"
 #include <math.h>
+#include <cstdlib>
+
+#include <stdio.h>
 
 //Generates a random float in the range [0;1]
 #define RANDOM_FLOAT (((float)rand())/RAND_MAX)
@@ -103,7 +106,7 @@ void CCCParticle::Update(float timePassed)
 	m_fSize  += m_fSizeChange *timePassed;
 	m_fAlpha += m_fAlphaChange*timePassed;
 	m_Color = m_Color + m_ColorChange*timePassed;
-	m_Velocity = m_Velocity + m_Acceleration*timePassed;
+	m_Velocity = m_Velocity + m_Acceleration*timePassed/5;
 	//Note: exact would be: m_Position = 1/2*m_Acceleration*timePassed² + m_VelocityOLD*timePassed;
 	//But this approach is ok, I think!
 	m_Position = m_Position + (m_Velocity*timePassed);
@@ -328,6 +331,10 @@ void CCCParticleSystem::SetAlphaValues (float MinEmit, float MaxEmit, float MinD
 
 void CCCParticleSystem::SetSizeValues (float EmitMin, float EmitMax, float DieMin, float DieMax)
 {
+	printf("Set size:%f  %f\n",EmitMin,EmitMax);
+	if(EmitMax > 10){
+		EmitMax = 1;
+	}
 	m_fMinEmitSize = EmitMin;
 	m_fMaxEmitSize = EmitMax;
 	m_fMinDieSize = DieMin;
@@ -393,7 +400,10 @@ void CCCParticleSystem::UpdateSystem(float timePassed)
 				//Especially if you simulate something like rain, then you could see that 
 				//many particles are emitted at the same time (same "UpdateSystem" call),
 				//if you would not call this function:				
-				m_pParticles[i].Update(RANDOM_FLOAT*timePassed);  
+				float randomNumber = RANDOM_FLOAT;
+				// printf("Random number = %f\n", randomNumber);
+				m_pParticles[i].Update(randomNumber+timePassed);  
+				
 				iParticlesToCreate--;
 			}
 		}

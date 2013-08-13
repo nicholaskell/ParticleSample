@@ -9,6 +9,8 @@
 #include "particles.h"
 #include <stdio.h>
 
+#include "system/time/Clock.h"
+
 //Particle variables:
 CCCParticleSystem g_ParticleSystem1;
 CCCParticleSystem g_ParticleSystem2;
@@ -24,8 +26,13 @@ const int UPDATE_FUNCTION_TIME = 30; // every 30 ms
 //Time handling (note: use QueryPerformanceCounter in "real" projects!)
 long unsigned int g_iLastRenderTime = 0;
 
+gal::Clock galClock;
+
 long unsigned int timeGetTime()
 {
+	
+	 return galClock.getElapsedTime().asMilliseconds();
+	return galClock.getCurrentOSTime().asMilliseconds();
         //timespec time;
         //clock_gettime(CLOCK_MONOTONIC, &time);
 
@@ -76,19 +83,29 @@ void DrawNet(GLfloat size, GLint LinesX, GLint LinesZ)
 
 void Display(void)
 {
+	long unsigned int iNowTime = timeGetTime();
+	float timePassed = abs(float(iNowTime-g_iLastRenderTime));
+	static float updateTime = 0;
+	if(timePassed > 0){
+		
+		
+	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();	//Load a new modelview matrix -> we can apply new transformations
 
 	//Update the scene:
-	long unsigned int iNowTime = timeGetTime();
-	float timePassed = float(iNowTime-g_iLastRenderTime);
-	g_ParticleSystem1.UpdateSystem(timePassed);
-	g_ParticleSystem2.UpdateSystem(timePassed);
-	g_ParticleSystem3.UpdateSystem(timePassed);
-	g_ParticleSystem4.UpdateSystem(timePassed);
-	g_ParticleSystem5.UpdateSystem(timePassed);
-	g_ParticleSystem6.UpdateSystem(timePassed);
 	
+	// float timePassed = float(iNowTime-g_iLastRenderTime);
+	++updateTime;
+	g_ParticleSystem1.UpdateSystem(updateTime);
+	g_ParticleSystem2.UpdateSystem(updateTime);
+	g_ParticleSystem3.UpdateSystem(updateTime);
+	g_ParticleSystem4.UpdateSystem(updateTime);
+	g_ParticleSystem5.UpdateSystem(updateTime);
+	g_ParticleSystem6.UpdateSystem(updateTime);
+	
+	
+	printf( "Now:%d \t passed:%d\n", iNowTime, timePassed );
 	g_iLastRenderTime = iNowTime;
 	
 	//render everything:
@@ -158,6 +175,7 @@ void Display(void)
 
 	glFlush();			//Finish rendering
 	glutSwapBuffers();	//Swap the buffers ->make the result of rendering visible
+	}
 }
 void Reshape(int x, int y)
 {
@@ -227,27 +245,27 @@ void KeyDown(unsigned char key, int x, int y)
 void InitParticles()
 {
 //INIT SYSTEM 1 (FIRE1)
-	g_ParticleSystem1.Initialize(300);
-	g_ParticleSystem1.m_iParticlesCreatedPerSec = 300;
-	g_ParticleSystem1.m_fCreationVariance = 0.0f;
-	g_ParticleSystem1.m_bRecreateWhenDied = false;
-	g_ParticleSystem1.m_fMinDieAge = 0.5f;
-	g_ParticleSystem1.m_fMaxDieAge = 1.5f;
+	g_ParticleSystem1.Initialize(10000);
+	g_ParticleSystem1.m_iParticlesCreatedPerSec = 4000;
+	g_ParticleSystem1.m_fCreationVariance = 0.9f;
+	g_ParticleSystem1.m_bRecreateWhenDied = true;
+	g_ParticleSystem1.m_fMinDieAge = 0.1f;
+	g_ParticleSystem1.m_fMaxDieAge = 2.5f;
 	g_ParticleSystem1.SetCreationColor(1.0f,0.0f,0.0f,
 									1.0f,0.5f,0.0f);
 	g_ParticleSystem1.SetDieColor(1.0f,1.0f,1.0f,
 							      1.0f,0.5f,0.0f);
 
-	g_ParticleSystem1.SetAlphaValues(1.0f,1.0f,0.0f,0.0f);
+	g_ParticleSystem1.SetAlphaValues(0.01f,0.01f,0.01f,0.01f);
 	g_ParticleSystem1.SetEmitter(0.0f,0.0f,0.5f,
 								0.1f,0.0f,0.1f);
-	g_ParticleSystem1.SetAcceleration(F3dVector(0.0f,1.0f,0.0f),0.3f,0.4f);
-	g_ParticleSystem1.SetSizeValues(0.04f,0.08f,0.06f,0.12f);
+	g_ParticleSystem1.SetAcceleration(F3dVector(0.0f,0.7f,0.0f),0.3f,0.4f);
+	g_ParticleSystem1.SetSizeValues(0.01f,0.1f,0.01f,0.1f);
 	g_ParticleSystem1.m_fMaxEmitSpeed = 0.2f;
-	g_ParticleSystem1.m_fMinEmitSpeed = 0.3f;
+	g_ParticleSystem1.m_fMinEmitSpeed = 0.1f;
 	g_ParticleSystem1.SetEmissionDirection(0.0f,1.0f,0.0f,
 										0.08f,0.5f,0.08f);
-	g_ParticleSystem1.m_bParticlesLeaveSystem = true;
+	g_ParticleSystem1.m_bParticlesLeaveSystem = false;
 	g_ParticleSystem1.SetSpinSpeed(-0.82*PI,0.82*PI);
 	g_ParticleSystem1.m_iBillboarding = BILLBOARDING_PERPTOVIEWDIR;
 	g_ParticleSystem1.LoadTextureFromFile("particle1.png");
@@ -303,9 +321,9 @@ void InitParticles()
 
 //INIT SYSTEM 4 (SMOKE)
 	g_ParticleSystem4.Initialize(150);
-	g_ParticleSystem4.m_iParticlesCreatedPerSec = 50;
-	g_ParticleSystem4.m_fCreationVariance = 0.0f;
-	g_ParticleSystem4.m_bRecreateWhenDied = false;
+	g_ParticleSystem4.m_iParticlesCreatedPerSec = 150;
+	g_ParticleSystem4.m_fCreationVariance = 0.02f;
+	g_ParticleSystem4.m_bRecreateWhenDied = true;
 	g_ParticleSystem4.m_fMinDieAge = 2.5f;
 	g_ParticleSystem4.m_fMaxDieAge = 3.5f;
 	g_ParticleSystem4.SetCreationColor(0.1f,0.1f,0.1f,
@@ -317,7 +335,7 @@ void InitParticles()
 	g_ParticleSystem4.SetEmitter(-0.8f,0.0f,0.0f,
 								0.0f,0.0f,0.0f);
 	g_ParticleSystem4.SetAcceleration(F3dVector(0.0f,1.0f,0.0f),0.3f,0.4f);
-	g_ParticleSystem4.SetSizeValues(0.0f,0.0f,1.12f,1.22f);
+	g_ParticleSystem4.SetSizeValues(0.01f,0.02f,0.12f,0.22f);
 	g_ParticleSystem4.m_fMaxEmitSpeed = 0.01f;
 	g_ParticleSystem4.m_fMinEmitSpeed = 0.04f;
 	g_ParticleSystem4.SetEmissionDirection(0.0f,1.0f,0.0f,
@@ -327,8 +345,8 @@ void InitParticles()
 	g_ParticleSystem4.LoadTextureFromFile("particle3.png");
 
 //INIT SYSTEM 5 ("ENGINE")
-	g_ParticleSystem5.Initialize(300);
-	g_ParticleSystem5.m_iParticlesCreatedPerSec = 200;
+	g_ParticleSystem5.Initialize(3000);
+	g_ParticleSystem5.m_iParticlesCreatedPerSec = 2000;
 	g_ParticleSystem5.m_fCreationVariance = 0.0f;
 	g_ParticleSystem5.m_bRecreateWhenDied = false;
 	g_ParticleSystem5.m_fMinDieAge = 1.0f;
@@ -415,7 +433,7 @@ int main(int argc, char **argv)
 	glutDisplayFunc(Display);
 	glutReshapeFunc(Reshape);
 	glutKeyboardFunc(KeyDown);
-	//glutIdleFunc(Display);  //If there is no msg, we have to repaint
+//	glutIdleFunc(Display);  //If there is no msg, we have to repaint
 	
 	// our update callback function
 	glutTimerFunc(UPDATE_FUNCTION_TIME, &update, 0);
